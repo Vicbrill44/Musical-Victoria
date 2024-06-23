@@ -1,0 +1,4 @@
+This is a readme for general things i want to keep track of while making this project.
+
+1) I made a virtualenv for now to keep my python dependencies/packages. I downloaded pip, and then i downloaded virtualenv. Finally i created a virtualenv called musical-victoria-env
+- To activate it i use source musical-victoria-env/bin/activate and to deactivate i use deactivate.
