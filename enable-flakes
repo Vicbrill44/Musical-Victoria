@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+# Script to enable Nix flakes and `nix-command` in `nix.conf`.
+
+__XDG_CONFIG_DIR="${HOME}/.config"
+__NIX_CONFIG_DIR="${__XDG_CONFIG_DIR}/nix"
+__NIX_CONFIG="${__NIX_CONFIG_DIR}/nix.conf"
+__FEATURES=('flakes' 'nix-command')
+__LINE_CNT=0
+
+function _echo_red() {
+	if command -v tput &>/dev/null; then
+		echo "$(tput setaf 1)${*}$(tput sgr0)";
+	else
+		echo "${*}"
+	fi
+}
+
+function _get_experimental_features() {
+	local __file="${1}"
+	local __lines=()
+	local __line
+	local i
+
+	[[ ! -f "${__file}" ]] && return 0
+
+	while read -r i; do
+		__lines+=("${i}")
+	done < <(grep -E '^experimental-features = ?' "${__file}")
+
+	case ${#__lines[@]} in
+	0) ;;
+	1)
+		__FEATURES+=($(sed -E 's/experimental-features = ?//' <<<"${__lines[0]}"))
+		;;
+	*)
+		_echo_red 'Existing `nix.conf` seems to be invalid'
+
+		return 1
+		;;
+	esac
+
+	__LINE_CNT=${#__lines[@]}
+
+	return 0
+}
+
+function _dedup_features() {
+	__FEATURES=($(printf '%s\n' "${__FEATURES[@]}" | sort -u))
+
+	return 0
+}
+
+function _install() {
+	local __file="${1}"
+
+	mkdir -p "${__NIX_CONFIG_DIR}"
+
+	case ${__LINE_CNT} in
+	0)
+		echo "experimental-features = ${__FEATURES[*]}" >>"${__file}"
+		;;
+	1)
+		sed -Ei "s/^(experimental-features =) ?.*$/\1 ${__FEATURES[*]}/" "${__file}"
+		;;
+	esac
+
+	return 0
+}
+
+function _main() {
+	if [[ ! -d "${__XDG_CONFIG_DIR}" ]]; then
+		_echo_red "Skipping because '${__XDG_CONFIG_DIR}' not found"
+
+		return 1
+	fi
+
+	_get_experimental_features "${__NIX_CONFIG}" || return $?
+	_dedup_features || return $?
+	_install "${__NIX_CONFIG}" || return $?
+
+	return 0
+}
+
+_main
+exit $?
