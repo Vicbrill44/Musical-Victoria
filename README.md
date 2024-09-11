@@ -29,11 +29,11 @@ to do is:
 
 1. Ensure that `experimental-features = flakes nix-command` is in your
    `nix.conf` if not already enabled on your system. You can manually add it or,
-   if using a Linux system, run `make enable` to add this automatically.
+   if using a Linux system, run [`./enable-flakes`](./enable-flakes) to add this
+   automatically after reviewing the script.
 2. Clone the repository.
 3. `cd` into the directory.
-4. After inspecting [`flake.nix`](./flake.nix) and [`.envrc`](./.envrc) to be
-   sure that it is safe, run `direnv allow`.
+4. Run `direnv allow`.
 
 That's it! It's as simple as that.
 
